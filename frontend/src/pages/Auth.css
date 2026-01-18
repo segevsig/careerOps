@@ -95,7 +95,7 @@
 .auth-link {
   text-align: center;
   margin-top: 20px;
-  color: #666;
+  color: #999;
 }
 
 .auth-link a {
@@ -108,3 +108,28 @@
   text-decoration: underline;
 }
 
+
+.toggle-password {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  transition: color 0.2s ease;
+  outline: none;
+}
+
+.toggle-password:hover {
+  color: #667eea;
+}
+
+.toggle-password:focus {
+  outline: none;
+}
+
+.toggle-password:active {
+  transform: scale(0.95);
+}

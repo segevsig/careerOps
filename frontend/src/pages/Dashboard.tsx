@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import ApplicationForm from '../components/ApplicationForm';
 import ApplicationsList from '../components/ApplicationsList';
-import {DailyActivityChart} from '../components/GraphDaysOfApplied';
 import './Dashboard.css';
 
 interface DashboardData {
@@ -260,9 +259,6 @@ useEffect(() => {
               <div className="stat-label">Rejections</div>
             </div>
           </div>
-          <DailyActivityChart
-          data={dailyData}
-          />
         </section>
         <section className="applications-section">
           <div className="section-header">
