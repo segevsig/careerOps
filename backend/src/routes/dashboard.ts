@@ -4,6 +4,54 @@ import pool from '../config/database';
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api/dashboard:
+ *   get:
+ *     summary: Get user dashboard data
+ *     tags: [Dashboard]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Dashboard data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *                     firstName:
+ *                       type: string
+ *                     lastName:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                 stats:
+ *                   type: object
+ *                   properties:
+ *                     totalApplications:
+ *                       type: integer
+ *                     interviews:
+ *                       type: integer
+ *                     offers:
+ *                       type: integer
+ *                     rejections:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
 // Get user dashboard data
 router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {

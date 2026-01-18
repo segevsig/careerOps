@@ -14,6 +14,55 @@ interface CoverLetterRequest {
   tone?: "professional" | "friendly" | "concise";
 }
 
+/**
+ * @swagger
+ * /api/cover-letter:
+ *   post:
+ *     summary: Generate a cover letter using AI
+ *     tags: [Cover Letter]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - jobDescription
+ *               - cvText
+ *             properties:
+ *               jobDescription:
+ *                 type: string
+ *                 description: The job description for the position
+ *                 example: We are looking for a Senior Developer with 5+ years of experience...
+ *               cvText:
+ *                 type: string
+ *                 description: The applicant's CV/resume text
+ *                 example: John Doe, Senior Developer with 7 years of experience...
+ *               tone:
+ *                 type: string
+ *                 enum: [professional, friendly, concise]
+ *                 default: professional
+ *                 example: professional
+ *     responses:
+ *       200:
+ *         description: Cover letter generated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 coverLetter:
+ *                   type: string
+ *                   example: Dear Hiring Manager, I am writing to express my interest...
+ *       400:
+ *         description: Bad request - jobDescription and cvText are required
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Failed to generate cover letter
+ */
 // POST /api/cover-letter
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
