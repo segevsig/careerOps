@@ -7,6 +7,7 @@ interface Application {
   positionTitle: string;
   status: 'applied' | 'interview' | 'offer' | 'rejected';
   appliedDate: string;
+  appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites';
   notes?: string;
 }
 
@@ -17,6 +18,7 @@ interface ApplicationFormProps {
     positionTitle: string;
     status: 'applied' | 'interview' | 'offer' | 'rejected';
     appliedDate: string;
+    appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites';
     notes?: string;
   }) => Promise<void>;
   onCancel: () => void;
@@ -28,6 +30,7 @@ const ApplicationForm = ({ application, onSubmit, onCancel }: ApplicationFormPro
     positionTitle: '',
     status: 'applied',
     appliedDate: new Date().toISOString().split('T')[0],
+    appliedFrom:'Linkedin',
     notes: '',
   });
 
@@ -38,6 +41,7 @@ const ApplicationForm = ({ application, onSubmit, onCancel }: ApplicationFormPro
         positionTitle: application.positionTitle,
         status: application.status,
         appliedDate: application.appliedDate,
+        appliedFrom : application.appliedFrom,
         notes: application.notes || '',
       });
     }
@@ -99,6 +103,21 @@ const ApplicationForm = ({ application, onSubmit, onCancel }: ApplicationFormPro
               onChange={(e) => setFormData({ ...formData, appliedDate: e.target.value })}
               required
             />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="appliedFrom">Where you Applied</label>
+            <select
+              id="appliedFrom"
+              value={formData.appliedFrom}
+              onChange={(e) => setFormData({ ...formData, appliedFrom: e.target.value as Application['appliedFrom'] })}
+              required
+            >
+              <option value="Job Sites">Job Sites</option>
+              <option value="Company Web">Company Web</option>
+              <option value="Linkedin">Linkedin</option>
+              <option value="Facebook">Facebook</option>
+            </select>
           </div>
 
           <div className="form-group">

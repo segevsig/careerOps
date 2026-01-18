@@ -9,6 +9,7 @@ interface Application {
   notes?: string;
   created_at: string;
   updated_at: string;
+  applied_from:string;
 }
 
 interface ApplicationsListProps {
@@ -62,8 +63,8 @@ const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListPr
         <div key={app.id} className="application-card">
           <div className="application-header">
             <div className="application-title">
-              <h3>{app.position_title}</h3>
-              <span className="company-name">{app.company_name}</span>
+              <h3>{app.company_name}</h3>
+              <span className="company-name">{app.position_title}</span>
             </div>
             <span
               className="status-badge"
@@ -83,6 +84,12 @@ const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListPr
                 })}
               </span>
             </div>
+            {app.applied_from && app.applied_from !== 'unknown' && (
+              <div className="applied-from">
+                <span className="detail-label">applied from:</span>
+                <p>{app.applied_from}</p>
+              </div>
+            )}
             {app.notes && (
               <div className="application-notes">
                 <span className="detail-label">Notes:</span>
@@ -105,4 +112,5 @@ const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListPr
 };
 
 export default ApplicationsList;
+
 

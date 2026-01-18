@@ -14,7 +14,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     }
 
     const result = await pool.query(
-      `SELECT id, company_name, position_title, status, applied_date, notes, created_at, updated_at
+      `SELECT id, company_name, position_title, status, applied_date, notes, created_at, updated_at,applied_from
        FROM job_applications
        WHERE user_id = $1
        ORDER BY applied_date DESC, created_at DESC`,
@@ -39,7 +39,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
     }
 
     const result = await pool.query(
-      `SELECT id, company_name, position_title, status, applied_date, notes, created_at, updated_at
+      `SELECT id, company_name, position_title, status, applied_date, notes, created_at, updated_at ,applied_from
        FROM job_applications
        WHERE id = $1 AND user_id = $2`,
       [applicationId, userId]
@@ -60,7 +60,9 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
-    const { companyName, positionTitle, status, appliedDate, notes } = req.body;
+    const { companyName, positionTitle, status, appliedDate, notes ,appliedfrom } = req.body;
+
+    console.log('appliedfrom',appliedfrom);
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -78,10 +80,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     }
 
     const result = await pool.query(
-      `INSERT INTO job_applications (user_id, company_name, position_title, status, applied_date, notes)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING id, company_name, position_title, status, applied_date, notes, created_at, updated_at`,
-      [userId, companyName, positionTitle, applicationStatus, appliedDate, notes || null]
+      `INSERT INTO job_applications (user_id, company_name, position_title, status, applied_date, notes ,applied_from)
+       VALUES ($1, $2, $3, $4, $5, $6 ,$7)
+       RETURNING id, company_name, position_title, status, applied_date, notes, created_at, updated_at ,applied_from `,
+      [userId, companyName, positionTitle, applicationStatus, appliedDate, notes || null , appliedfrom || 'unknown' ]
     );
 
     res.status(201).json({ application: result.rows[0] });
@@ -96,7 +98,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
   try {
     const userId = req.userId;
     const applicationId = parseInt(req.params.id);
-    const { companyName, positionTitle, status, appliedDate, notes } = req.body;
+    const { companyName, positionTitle, status, appliedDate, notes ,appliedfrom} = req.body;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -137,13 +139,20 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
       updates.push(`status = $${paramCount++}`);
       values.push(status);
     }
+
     if (appliedDate !== undefined) {
       updates.push(`applied_date = $${paramCount++}`);
       values.push(appliedDate);
     }
+
     if (notes !== undefined) {
       updates.push(`notes = $${paramCount++}`);
       values.push(notes);
+    }
+
+    if (appliedfrom !== undefined) {
+      updates.push(`applied_from = $${paramCount++}`);
+      values.push(appliedfrom);
     }
 
     if (updates.length === 0) {
@@ -195,4 +204,5 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 });
 
 export default router;
+
 

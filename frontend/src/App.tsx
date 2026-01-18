@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Home from './pages/Home'
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -11,7 +12,7 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     return <div style={{ textAlign: 'center', padding: '40px' }}>Loading...</div>;
   }
 
-  return user ? <>{children}</> : <Navigate to="/login" />;
+  return user ? <>{children}</> : <Navigate to="/home" />;
 };
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Home/>}/>
           <Route
             path="/dashboard"
             element={

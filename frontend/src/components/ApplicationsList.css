@@ -1,6 +1,7 @@
 .applications-list {
   display: flex;
   gap: 20px;
+  flex-wrap: wrap;
 }
 
 .application-card {
@@ -9,6 +10,7 @@
   padding: 20px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s, box-shadow 0.2s;
+  width: calc(25% - 20px);
 }
 
 .application-card:hover {
@@ -145,5 +147,9 @@
   .delete-button {
     width: 100%;
   }
+  .application-card{
+    width: 100%;
+  }
 }
+
 

@@ -1,7 +1,4 @@
 import { Pool } from 'pg';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -61,6 +58,11 @@ export const initDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+
+    await pool.query(`
+      ALTER TABLE job_applications
+      ADD COLUMN IF NOT EXISTS applied_from VARCHAR(255) DEFAULT 'unknown'
     `);
 
     console.log('Database tables initialized successfully');

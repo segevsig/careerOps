@@ -7,6 +7,9 @@ export default defineConfig({
   resolve: {
     dedupe: ['react', 'react-dom'],
   },
+  optimizeDeps: {
+    include: ['recharts'],
+  },
   server: {
     host: true,
     port: 5173,

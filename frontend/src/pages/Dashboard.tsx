@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import ApplicationForm from '../components/ApplicationForm';
 import ApplicationsList from '../components/ApplicationsList';
+import {DailyActivityChart} from '../components/GraphDaysOfApplied';
 import './Dashboard.css';
 
 interface DashboardData {
@@ -31,7 +32,13 @@ interface Application {
   notes?: string;
   created_at: string;
   updated_at: string;
+  applied_from:string;
 }
+
+type DailyStats = {
+  date: string;
+  count: number;
+};
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -42,6 +49,32 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
+  const [cvText, setCvText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [dailyData, setDailyData] = useState<DailyStats[]>([]);
+
+useEffect(() => {
+  if (applications.length > 0) {
+    const countMap: Record<string, number> = {};
+
+    applications.forEach(job => {
+      const date = job.applied_date.split("T")[0];
+      if (countMap[date]) {
+        countMap[date] += 1;
+      } else {
+        countMap[date] = 1;
+      }
+    });
+
+    const stats: DailyStats[] = Object.entries(countMap)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+
+    setDailyData(stats);
+  }
+}, [applications]);
 
   useEffect(() => {
     if (!user) {
@@ -83,10 +116,14 @@ const Dashboard = () => {
     positionTitle: string;
     status: 'applied' | 'interview' | 'offer' | 'rejected';
     appliedDate: string;
+    appliedFrom: string;
     notes?: string;
   }) => {
     try {
-      await api.post('/api/applications', applicationData);
+      await api.post('/api/applications', {
+        ...applicationData,
+        appliedfrom: applicationData.appliedFrom, // Convert to backend format
+      });
       setShowForm(false);
       await fetchApplications();
       await fetchDashboardData(); // Refresh stats
@@ -100,12 +137,16 @@ const Dashboard = () => {
     positionTitle: string;
     status: 'applied' | 'interview' | 'offer' | 'rejected';
     appliedDate: string;
+    appliedFrom: string;
     notes?: string;
   }) => {
     if (!editingApplication) return;
 
     try {
-      await api.put(`/api/applications/${editingApplication.id}`, applicationData);
+      await api.put(`/api/applications/${editingApplication.id}`, {
+        ...applicationData,
+        appliedfrom: applicationData.appliedFrom, // Convert to backend format
+      });
       setEditingApplication(null);
       setShowForm(false);
       await fetchApplications();
@@ -114,6 +155,26 @@ const Dashboard = () => {
       alert(err.response?.data?.error || 'Error updating application');
     }
   };
+
+  const generateCoverLetter = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/api/cover-letter', {
+        cvText,
+        jobDescription,
+        tone: "professional"
+      });
+
+      setCoverLetter(response.data.coverLetter);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const handleDeleteApplication = async (id: number) => {
     if (!confirm('Are you sure you want to delete this application?')) {
@@ -154,6 +215,8 @@ const Dashboard = () => {
       </div>
     );
   }
+
+
 
   const displayName = dashboardData?.user.firstName
     ? `${dashboardData.user.firstName} ${dashboardData.user.lastName || ''}`.trim()
@@ -197,6 +260,9 @@ const Dashboard = () => {
               <div className="stat-label">Rejections</div>
             </div>
           </div>
+          <DailyActivityChart
+          data={dailyData}
+          />
         </section>
         <section className="applications-section">
           <div className="section-header">
@@ -232,6 +298,85 @@ const Dashboard = () => {
             </div>
           </div>
         </section>
+        <section className="cover-letter-section">
+          <div className="cover-letter-box">
+            <div className="cover-letter-header">
+              <h3>Generate Cover Letter</h3>
+              <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>
+            </div>
+
+            <div className="cover-letter-inputs">
+              <div className="input-group">
+                <label htmlFor="cvText">Your CV</label>
+                <textarea
+                  id="cvText"
+                  placeholder="Paste your CV here... (resume, work experience, skills, education)"
+                  value={cvText}
+                  onChange={(e) => setCvText(e.target.value)}
+                  rows={8}
+                  className="cover-letter-textarea"
+                />
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="jobDescription">Job Description</label>
+                <textarea
+                  id="jobDescription"
+                  placeholder="Paste the job description here... (requirements, responsibilities, company info)"
+                  value={jobDescription}
+                  onChange={(e) => setJobDescription(e.target.value)}
+                  rows={8}
+                  className="cover-letter-textarea"
+                />
+              </div>
+            </div>
+
+            <div className="cover-letter-actions">
+              <button 
+                onClick={generateCoverLetter} 
+                disabled={loading || !cvText.trim() || !jobDescription.trim()}
+                className="generate-button"
+              >
+                {loading ? (
+                  <>
+                    <span className="spinner"></span>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <span className="button-icon">✨</span>
+                    Generate Cover Letter
+                  </>
+                )}
+              </button>
+            </div>
+
+            {error && (
+              <div className="cover-letter-error">
+                <span className="error-icon">⚠️</span>
+                <span>{error}</span>
+              </div>
+            )}
+
+            {coverLetter && (
+              <div className="cover-letter-result">
+                <div className="result-header">
+                  <h4>Your Generated Cover Letter</h4>
+                  <button 
+                    onClick={() => navigator.clipboard.writeText(coverLetter)}
+                    className="copy-button"
+                    title="Copy to clipboard"
+                  >
+                    📋 Copy
+                  </button>
+                </div>
+                <div className="result-content">
+                  <pre>{coverLetter}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
 
       {showForm && (
@@ -245,6 +390,7 @@ const Dashboard = () => {
                   status: editingApplication.status,
                   appliedDate: editingApplication.applied_date,
                   notes: editingApplication.notes,
+                  appliedFrom:editingApplication.applied_from,
                 }
               : null
           }
