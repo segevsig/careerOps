@@ -1,0 +1,129 @@
+import { useState } from 'react';
+import api from '../services/api';
+import './CoverLetterGenerator.css';
+
+const CoverLetterGenerator = () => {
+  const [cvText, setCvText] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [tone, setTone] = useState<"professional" | "friendly" | "concise">("professional");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const generateCoverLetter = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await api.post('/api/cover-letter', {
+        cvText,
+        jobDescription,
+        tone
+      });
+
+      setCoverLetter(response.data.coverLetter);
+    } catch (err: any) {
+      setError(err.response?.data?.error || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <section className="cover-letter-section">
+      <div className="cover-letter-box">
+        <div className="cover-letter-header">
+          <h3>Generate Cover Letter</h3>
+          <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>
+        </div>
+
+        <div className="cover-letter-inputs">
+          <div className="input-group">
+            <label htmlFor="cvText">Your CV</label>
+            <textarea
+              id="cvText"
+              placeholder="Paste your CV here... (resume, work experience, skills, education)"
+              value={cvText}
+              onChange={(e) => setCvText(e.target.value)}
+              rows={8}
+              className="cover-letter-textarea"
+            />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="jobDescription">Job Description</label>
+            <textarea
+              id="jobDescription"
+              placeholder="Paste the job description here... (requirements, responsibilities, company info)"
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              rows={8}
+              className="cover-letter-textarea"
+            />
+          </div>
+        </div>
+
+        <div className="tone-selector-group">
+          <label htmlFor="tone">Tone</label>
+          <select
+            id="tone"
+            value={tone}
+            onChange={(e) => setTone(e.target.value as "professional" | "friendly" | "concise")}
+            className="tone-select"
+          >
+            <option value="professional">Professional</option>
+            <option value="friendly">Friendly</option>
+            <option value="concise">Concise</option>
+          </select>
+        </div>
+
+        <div className="cover-letter-actions">
+          <button 
+            onClick={generateCoverLetter} 
+            disabled={loading || !cvText.trim() || !jobDescription.trim()}
+            className="generate-button"
+          >
+            {loading ? (
+              <>
+                <span className="spinner"></span>
+                Generating...
+              </>
+            ) : (
+              <>
+                <span className="button-icon">✨</span>
+                Generate Cover Letter
+              </>
+            )}
+          </button>
+        </div>
+
+        {error && (
+          <div className="cover-letter-error">
+            <span className="error-icon">⚠️</span>
+            <span>{error}</span>
+          </div>
+        )}
+
+        {coverLetter && (
+          <div className="cover-letter-result">
+            <div className="result-header">
+              <h4>Your Generated Cover Letter</h4>
+              <button 
+                onClick={() => navigator.clipboard.writeText(coverLetter)}
+                className="copy-button"
+                title="Copy to clipboard"
+              >
+                📋 Copy
+              </button>
+            </div>
+            <div className="result-content">
+              <pre>{coverLetter}</pre>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default CoverLetterGenerator;

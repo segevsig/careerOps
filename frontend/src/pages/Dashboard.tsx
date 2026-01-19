@@ -4,6 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import ApplicationForm from '../components/ApplicationForm';
 import ApplicationsList from '../components/ApplicationsList';
+import DashboardHeader from '../components/DashboardHeader';
+import WelcomeSection from '../components/WelcomeSection';
+import JobTipsSection from '../components/JobTipsSection';
+import StatsSection from '../components/StatsSection';
+import CoverLetterGenerator from '../components/CoverLetterGenerator';
 import './Dashboard.css';
 
 interface DashboardData {
@@ -48,10 +53,6 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
-  const [cvText, setCvText] = useState("");
-  const [jobDescription, setJobDescription] = useState("");
-  const [coverLetter, setCoverLetter] = useState("");
-  const [loading, setLoading] = useState(false);
   const [dailyData, setDailyData] = useState<DailyStats[]>([]);
 
 useEffect(() => {
@@ -155,24 +156,6 @@ useEffect(() => {
     }
   };
 
-  const generateCoverLetter = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await api.post('/api/cover-letter', {
-        cvText,
-        jobDescription,
-        tone: "professional"
-      });
-
-      setCoverLetter(response.data.coverLetter);
-    } catch (err: any) {
-      setError(err.response?.data?.error || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
 
 
   const handleDeleteApplication = async (id: number) => {
@@ -223,43 +206,13 @@ useEffect(() => {
 
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header">
-        <h1>CareerOps</h1>
-        <div className="header-actions">
-          <span className="user-name">Hello, {displayName}</span>
-          <button onClick={handleLogout} className="logout-button">
-            Logout
-          </button>
-        </div>
-      </header>
+      <DashboardHeader displayName={displayName} onLogout={handleLogout} />
 
       <main className="dashboard-main">
-        <section className="welcome-section">
-          <h2>Welcome to Your Dashboard!</h2>
-          <p>Here you can manage your entire job search process</p>
-        </section>
+        <WelcomeSection user={dashboardData?.user || null} displayName={displayName} />
 
-        <section className="stats-section">
-          <h3>Statistics</h3>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-value">{dashboardData?.stats.totalApplications || 0}</div>
-              <div className="stat-label">Applications Sent</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{dashboardData?.stats.interviews || 0}</div>
-              <div className="stat-label">Interviews</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{dashboardData?.stats.offers || 0}</div>
-              <div className="stat-label">Offers</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{dashboardData?.stats.rejections || 0}</div>
-              <div className="stat-label">Rejections</div>
-            </div>
-          </div>
-        </section>
+        <StatsSection stats={dashboardData?.stats || null} />
+
         <section className="applications-section">
           <div className="section-header">
             <h3>Job Applications</h3>
@@ -273,106 +226,9 @@ useEffect(() => {
             onDelete={handleDeleteApplication}
           />
         </section>
-        <section className="info-section">
-          <h3>Personal Information</h3>
-          <div className="info-card">
-            <div className="info-row">
-              <span className="info-label">Email:</span>
-              <span className="info-value">{dashboardData?.user.email}</span>
-            </div>
-            {dashboardData?.user.firstName && (
-              <div className="info-row">
-                <span className="info-label">Name:</span>
-                <span className="info-value">{displayName}</span>
-              </div>
-            )}
-            <div className="info-row">
-              <span className="info-label">Join Date:</span>
-              <span className="info-value">
-                {new Date(dashboardData?.user.createdAt || '').toLocaleDateString('en-US')}
-              </span>
-            </div>
-          </div>
-        </section>
-        <section className="cover-letter-section">
-          <div className="cover-letter-box">
-            <div className="cover-letter-header">
-              <h3>Generate Cover Letter</h3>
-              <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>
-            </div>
 
-            <div className="cover-letter-inputs">
-              <div className="input-group">
-                <label htmlFor="cvText">Your CV</label>
-                <textarea
-                  id="cvText"
-                  placeholder="Paste your CV here... (resume, work experience, skills, education)"
-                  value={cvText}
-                  onChange={(e) => setCvText(e.target.value)}
-                  rows={8}
-                  className="cover-letter-textarea"
-                />
-              </div>
 
-              <div className="input-group">
-                <label htmlFor="jobDescription">Job Description</label>
-                <textarea
-                  id="jobDescription"
-                  placeholder="Paste the job description here... (requirements, responsibilities, company info)"
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  rows={8}
-                  className="cover-letter-textarea"
-                />
-              </div>
-            </div>
-
-            <div className="cover-letter-actions">
-              <button 
-                onClick={generateCoverLetter} 
-                disabled={loading || !cvText.trim() || !jobDescription.trim()}
-                className="generate-button"
-              >
-                {loading ? (
-                  <>
-                    <span className="spinner"></span>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <span className="button-icon">✨</span>
-                    Generate Cover Letter
-                  </>
-                )}
-              </button>
-            </div>
-
-            {error && (
-              <div className="cover-letter-error">
-                <span className="error-icon">⚠️</span>
-                <span>{error}</span>
-              </div>
-            )}
-
-            {coverLetter && (
-              <div className="cover-letter-result">
-                <div className="result-header">
-                  <h4>Your Generated Cover Letter</h4>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText(coverLetter)}
-                    className="copy-button"
-                    title="Copy to clipboard"
-                  >
-                    📋 Copy
-                  </button>
-                </div>
-                <div className="result-content">
-                  <pre>{coverLetter}</pre>
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
+        <CoverLetterGenerator />
       </main>
 
       {showForm && (
@@ -394,6 +250,8 @@ useEffect(() => {
           onCancel={closeForm}
         />
       )}
+              <JobTipsSection />
+
     </div>
   );
 };
