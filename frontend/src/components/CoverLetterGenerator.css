@@ -1,6 +1,51 @@
+/* Cover Letter Modal */
+.cover-letter-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.cover-letter-modal-content {
+  width: 100%;
+  max-width: 1000px;
+  max-height: 95vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* Cover Letter Section */
 .cover-letter-section {
-  margin-bottom: 30px;
+  margin-bottom: 0;
   position: relative;
 }
 
@@ -51,6 +96,36 @@
   margin-bottom: 40px;
   text-align: center;
   position: relative;
+}
+
+.cover-letter-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cover-letter-close-button {
+  background: rgba(102, 126, 234, 0.1);
+  border: none;
+  color: #667eea;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 28px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.cover-letter-close-button:hover {
+  background: rgba(102, 126, 234, 0.2);
+  transform: rotate(90deg);
 }
 
 .cover-letter-header h3 {
@@ -414,8 +489,26 @@
 }
 
 @media (max-width: 768px) {
+  .cover-letter-modal-overlay {
+    padding: 10px;
+  }
+
+  .cover-letter-modal-content {
+    max-height: 98vh;
+  }
+
   .cover-letter-box {
     padding: 30px 20px;
+  }
+
+  .cover-letter-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .cover-letter-close-button {
+    align-self: flex-end;
   }
 
   .cover-letter-header h3 {

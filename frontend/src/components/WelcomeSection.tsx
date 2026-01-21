@@ -13,6 +13,14 @@ interface WelcomeSectionProps {
 }
 
 const WelcomeSection = ({ user, displayName }: WelcomeSectionProps) => {
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <section className="welcome-section">
       <div className="welcome-content">
@@ -36,7 +44,7 @@ const WelcomeSection = ({ user, displayName }: WelcomeSectionProps) => {
           <div className="info-row">
             <span className="info-label">Join Date:</span>
             <span className="info-value">
-              {new Date(user?.createdAt || '').toLocaleDateString('en-US')}
+              {user?.createdAt ? formatDate(user.createdAt) : ''}
             </span>
           </div>
         </div>

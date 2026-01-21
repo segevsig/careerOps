@@ -52,6 +52,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [showCoverLetter, setShowCoverLetter] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
   const [dailyData, setDailyData] = useState<DailyStats[]>([]);
 
@@ -227,8 +228,28 @@ useEffect(() => {
           />
         </section>
 
+        <section className="cover-letter-toggle-section">
+          <button 
+            onClick={() => setShowCoverLetter(!showCoverLetter)} 
+            className="cover-letter-toggle-button"
+          >
+            {showCoverLetter ? (
+              <>
+                <span>✕</span>
+                Hide Cover Letter Generator
+              </>
+            ) : (
+              <>
+                <span>✨</span>
+                Generate Cover Letter
+              </>
+            )}
+          </button>
+        </section>
 
-        <CoverLetterGenerator />
+        {showCoverLetter && (
+          <CoverLetterGenerator onClose={() => setShowCoverLetter(false)} />
+        )}
       </main>
 
       {showForm && (
@@ -250,7 +271,8 @@ useEffect(() => {
           onCancel={closeForm}
         />
       )}
-              <JobTipsSection />
+
+      <JobTipsSection />
 
     </div>
   );

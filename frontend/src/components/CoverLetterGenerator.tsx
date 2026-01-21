@@ -2,7 +2,11 @@ import { useState } from 'react';
 import api from '../services/api';
 import './CoverLetterGenerator.css';
 
-const CoverLetterGenerator = () => {
+interface CoverLetterGeneratorProps {
+  onClose: () => void;
+}
+
+const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
   const [cvText, setCvText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
@@ -30,12 +34,19 @@ const CoverLetterGenerator = () => {
   };
 
   return (
-    <section className="cover-letter-section">
-      <div className="cover-letter-box">
-        <div className="cover-letter-header">
-          <h3>Generate Cover Letter</h3>
-          <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>
-        </div>
+    <div className="cover-letter-modal-overlay" onClick={onClose}>
+      <div className="cover-letter-modal-content" onClick={(e) => e.stopPropagation()}>
+        <section className="cover-letter-section">
+          <div className="cover-letter-box">
+            <div className="cover-letter-header">
+              <div className="cover-letter-header-content">
+                <h3>Generate Cover Letter</h3>
+                <button className="cover-letter-close-button" onClick={onClose} aria-label="Close">
+                  ×
+                </button>
+              </div>
+              <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>
+            </div>
 
         <div className="cover-letter-inputs">
           <div className="input-group">
@@ -121,8 +132,10 @@ const CoverLetterGenerator = () => {
             </div>
           </div>
         )}
+          </div>
+        </section>
       </div>
-    </section>
+    </div>
   );
 };
 
