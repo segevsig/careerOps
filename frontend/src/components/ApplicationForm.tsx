@@ -7,7 +7,7 @@ interface Application {
   positionTitle: string;
   status: 'applied' | 'interview' | 'offer' | 'rejected';
   appliedDate: string;
-  appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites';
+  appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites' | 'Friends';
   notes?: string;
 }
 
@@ -18,7 +18,7 @@ interface ApplicationFormProps {
     positionTitle: string;
     status: 'applied' | 'interview' | 'offer' | 'rejected';
     appliedDate: string;
-    appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites';
+    appliedFrom: 'Linkedin'| 'Facebook' | 'Company Web' | 'Job Sites' | 'Friends';
     notes?: string;
   }) => Promise<void>;
   onCancel: () => void;
@@ -117,6 +117,7 @@ const ApplicationForm = ({ application, onSubmit, onCancel }: ApplicationFormPro
               <option value="Company Web">Company Web</option>
               <option value="Linkedin">Linkedin</option>
               <option value="Facebook">Facebook</option>
+              <option value="Friends">Friends</option>
             </select>
           </div>
 
