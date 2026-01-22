@@ -6,6 +6,7 @@ A system to help you manage your entire job search process
 
 - ✅ PostgreSQL database connection
 - ✅ User authentication system
+- ✅ Forgot password (email reset link)
 - ✅ Personal user dashboard
 - ✅ Modern and beautiful user interface
 
@@ -52,7 +53,12 @@ DB_USER=careerops
 DB_PASSWORD=careerops
 JWT_SECRET=your-secret-key-change-in-production
 PORT=3000
+FRONTEND_URL=http://localhost:5173
 ```
+
+**Forgot password & email:** To send real password-reset emails, set SMTP variables:
+`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, and optionally `SMTP_SECURE`, `SMTP_FROM`.  
+**Without SMTP:** the reset link is shown on the Forgot Password success page and logged in the backend console (handy for local development).
 
 #### Frontend
 
@@ -91,6 +97,8 @@ CareerOps/
 ### Authentication
 - `POST /api/auth/register` - Register a new user
 - `POST /api/auth/login` - Login
+- `POST /api/auth/forgot-password` - Request password reset email (body: `{ "email": "..." }`)
+- `POST /api/auth/reset-password` - Reset password with token from email (body: `{ "token": "...", "password": "..." }`)
 
 ### Dashboard
 - `GET /api/dashboard` - Get dashboard data (requires authentication)
@@ -100,6 +108,7 @@ CareerOps/
 The system uses PostgreSQL with the following tables:
 - `users` - Users
 - `user_sessions` - Sessions (for future use)
+- `password_reset_tokens` - Forgot-password tokens (expire after 1 hour)
 
 ## Next Steps
 
