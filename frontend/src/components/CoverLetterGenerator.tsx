@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import './CoverLetterGenerator.css';
 
@@ -13,10 +13,67 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
   const [tone, setTone] = useState<"professional" | "friendly" | "concise">("professional");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [jobId, setJobId] = useState<string | null>(null);
+  const [status, setStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Poll for job status
+  useEffect(() => {
+    if (!jobId) return;
+
+    const pollStatus = async () => {
+      try {
+        const response = await api.get(`/api/cover-letter/status/${jobId}`);
+        const jobStatus = response.data.status;
+        setStatus(jobStatus);
+
+        if (jobStatus === 'completed') {
+          setCoverLetter(response.data.coverLetter || '');
+          setLoading(false);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        } else if (jobStatus === 'failed') {
+          setError(response.data.errorMessage || 'Cover letter generation failed');
+          setLoading(false);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+      } catch (err: any) {
+        console.error('Error polling status:', err);
+        // Don't stop polling on network errors, but show error after a few failures
+        if (err.response?.status === 404) {
+          setError('Job not found');
+          setLoading(false);
+          if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+          }
+        }
+      }
+    };
+
+    // Poll immediately, then every 2 seconds
+    pollStatus();
+    pollingIntervalRef.current = setInterval(pollStatus, 2000);
+
+    // Cleanup on unmount
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+      }
+    };
+  }, [jobId]);
 
   const generateCoverLetter = async () => {
     setLoading(true);
     setError('');
+    setCoverLetter('');
+    setJobId(null);
+    setStatus(null);
 
     try {
       const response = await api.post('/api/cover-letter', {
@@ -25,10 +82,11 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
         tone
       });
 
-      setCoverLetter(response.data.coverLetter);
+      // Store the jobId to start polling
+      setJobId(response.data.jobId);
+      setStatus(response.data.status || 'pending');
     } catch (err: any) {
       setError(err.response?.data?.error || "Something went wrong");
-    } finally {
       setLoading(false);
     }
   };
@@ -97,7 +155,7 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
             {loading ? (
               <>
                 <span className="spinner"></span>
-                Generating...
+                {status === 'processing' ? 'Processing...' : status === 'pending' ? 'Queued...' : 'Generating...'}
               </>
             ) : (
               <>

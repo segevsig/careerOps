@@ -80,7 +80,7 @@ async function updateJobStatus(
  */
 export const processCoverLetterJob = async (
   message: CoverLetterJobMessage,
-  rawMessage: ConsumeMessage
+  rawMessage?: ConsumeMessage
 ): Promise<void> => {
   const { jobId, userId, jobDescription, cvText, tone } = message;
 
