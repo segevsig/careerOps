@@ -14,8 +14,9 @@ pool.on('connect', () => {
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-  process.exit(-1);
+  console.error('Unexpected error on idle database client:', err);
+  // Do not exit: process.exit() kills the server and causes ERR_CONNECTION_RESET.
+  // The pool may recover; let the app keep running.
 });
 
 // Initialize database tables
@@ -91,6 +92,17 @@ export const initDatabase = async () => {
     // Create index on user_id for user-specific queries
     await pool.query(`
       CREATE INDEX IF NOT EXISTS idx_cover_letter_jobs_user_id ON cover_letter_jobs(user_id)
+    `);
+
+    // Password reset tokens (token hashed, raw token sent by email)
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+        token_hash VARCHAR(64) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
     `);
 
     console.log('Database tables initialized successfully');
