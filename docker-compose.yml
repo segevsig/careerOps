@@ -32,6 +32,7 @@ services:
       DB_PASSWORD: careerops
       JWT_SECRET: your-secret-key-change-in-production
       PORT: 3000
+      FRONTEND_URL: http://localhost:5173
     depends_on:
       db:
         condition: service_healthy

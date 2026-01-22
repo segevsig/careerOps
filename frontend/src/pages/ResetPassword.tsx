@@ -1,52 +1,88 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import api from '../services/api';
 import './Auth.css';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
+const ResetPassword = () => {
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!token) setError('Invalid reset link. Please use the link from your email.');
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
     setIsLoading(true);
 
     try {
-      await login(email, password);
-      navigate('/dashboard');
+      await api.post('/api/auth/reset-password', { token, password });
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 3000);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login error');
+      setError(err.response?.data?.error || 'Could not reset password. The link may have expired.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  if (!token) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <h1>CareerOps</h1>
+          <h2>Reset password</h2>
+          <div className="error-message">{error}</div>
+          <p className="auth-link">
+            <Link to="/forgot-password">Request a new link</Link> or <Link to="/login">login</Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (success) {
+    return (
+      <div className="auth-container">
+        <div className="auth-card">
+          <h1>CareerOps</h1>
+          <h2>Password reset</h2>
+          <div className="success-message">
+            Your password has been updated. Redirecting to login…
+          </div>
+          <p className="auth-link">
+            <Link to="/login">Go to login now</Link>
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h1>CareerOps</h1>
-        <h2>Login</h2>
+        <h2>Set new password</h2>
         <form onSubmit={handleSubmit}>
           {error && <div className="error-message">{error}</div>}
           <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              dir="ltr"
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <label htmlFor="password">New password</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
@@ -54,6 +90,8 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
+                placeholder="At least 6 characters"
                 style={{ flex: 1 }}
               />
               <button
@@ -74,20 +112,28 @@ const Login = () => {
               </button>
             </div>
           </div>
+          <div className="form-group">
+            <label htmlFor="confirmPassword">Confirm password</label>
+            <input
+              type="password"
+              id="confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+              placeholder="Repeat new password"
+            />
+          </div>
           <button type="submit" disabled={isLoading} className="primary-button">
-            {isLoading ? 'Logging in...' : 'Login'}
+            {isLoading ? 'Resetting...' : 'Reset password'}
           </button>
-          <p className="auth-link auth-link--small">
-            <Link to="/forgot-password">Forgot your password?</Link>
-          </p>
         </form>
         <p className="auth-link">
-          Don't have an account? <Link to="/register">Sign up here</Link>
+          <Link to="/login">Back to login</Link>
         </p>
       </div>
     </div>
   );
 };
 
-export default Login;
-
+export default ResetPassword;
