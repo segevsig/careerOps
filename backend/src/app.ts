@@ -48,6 +48,32 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'careerops-backend' });
 });
 
+/**
+ * @swagger
+ * /health/rabbitmq:
+ *   get:
+ *     summary: Check RabbitMQ connection status
+ *     tags: [Health]
+ *     responses:
+ *       200:
+ *         description: RabbitMQ is connected
+ *       503:
+ *         description: RabbitMQ is not available
+ */
+app.get('/health/rabbitmq', async (_req, res) => {
+  try {
+    const { getConnection } = await import('./config/rabbitmq');
+    await getConnection();
+    res.json({ status: 'ok', rabbitmq: 'connected' });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'error', 
+      rabbitmq: 'not available',
+      message: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/applications', applicationsRoutes);

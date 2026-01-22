@@ -17,6 +17,22 @@ services:
       timeout: 5s
       retries: 5
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: careerops
+      RABBITMQ_DEFAULT_PASS: careerops
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
     volumes:
@@ -32,7 +48,10 @@ services:
       DB_PASSWORD: careerops
       JWT_SECRET: your-secret-key-change-in-production
       PORT: 3000
+      RABBITMQ_URL: amqp://careerops:careerops@rabbitmq:5672
     depends_on:
+      rabbitmq:
+        condition: service_healthy
       db:
         condition: service_healthy
 
@@ -48,5 +67,26 @@ services:
     depends_on:
       - backend
 
+  worker:
+    build: ./backend
+    command: npm run worker
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: careerops
+      DB_USER: careerops
+      DB_PASSWORD: careerops
+      RABBITMQ_URL: amqp://careerops:careerops@rabbitmq:5672
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:
+  rabbitmq_data:

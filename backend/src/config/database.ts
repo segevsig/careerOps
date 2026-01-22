@@ -65,6 +65,34 @@ export const initDatabase = async () => {
       ADD COLUMN IF NOT EXISTS applied_from VARCHAR(255) DEFAULT 'unknown'
     `);
 
+    // Create cover_letter_jobs table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS cover_letter_jobs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+        job_id VARCHAR(255) UNIQUE NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'pending',
+        job_description TEXT NOT NULL,
+        cv_text TEXT NOT NULL,
+        tone VARCHAR(50),
+        cover_letter TEXT,
+        error_message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP
+      )
+    `);
+
+    // Create index on job_id for faster lookups
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_cover_letter_jobs_job_id ON cover_letter_jobs(job_id)
+    `);
+
+    // Create index on user_id for user-specific queries
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_cover_letter_jobs_user_id ON cover_letter_jobs(user_id)
+    `);
+
     console.log('Database tables initialized successfully');
   } catch (error) {
     console.error('Error initializing database:', error);
