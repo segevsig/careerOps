@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import './ApplicationsList.css';
 
 interface Application {
@@ -18,7 +19,12 @@ interface ApplicationsListProps {
   onDelete: (id: number) => void;
 }
 
+type StatusFilter = 'all' | Application['status'];
+
 const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListProps) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'applied':
@@ -49,17 +55,75 @@ const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListPr
     }
   };
 
-  if (applications.length === 0) {
-    return (
-      <div className="applications-empty">
-        <p>No applications yet. Add your first job application to get started!</p>
-      </div>
-    );
-  }
+  const filteredApplications = applications.filter((app) => {
+    const query = searchQuery.toLowerCase();
+    const matchesSearch =
+      app.company_name.toLowerCase().includes(query) ||
+      app.position_title.toLowerCase().includes(query);
+
+    const matchesStatus =
+      statusFilter === 'all' || app.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const getEmptyMessage = () => {
+    const hasAnyApplications = applications.length > 0;
+
+    if (!hasAnyApplications) {
+      return 'No applications yet. Add your first job application to get started!';
+    }
+
+    if (statusFilter !== 'all' && !searchQuery) {
+      return `You don't have any applications with status "${getStatusLabel(statusFilter)}".`;
+    }
+
+    if (statusFilter !== 'all' && searchQuery) {
+      return `No applications found with status "${getStatusLabel(
+        statusFilter
+      )}" matching "${searchQuery}".`;
+    }
+
+    if (searchQuery) {
+      return `No applications found matching "${searchQuery}".`;
+    }
+
+    return 'No applications to show.';
+  };
 
   return (
-    <div className="applications-list">
-      {applications.map((app) => (
+    <div className="applications-list-container">
+      <div className="search-container">
+        <div className="filters-row">
+          <input
+            type="text"
+            placeholder="Search applications by company, position"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="search-input"
+          />
+          <select
+            className="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+          >
+            <option value="all">All statuses</option>
+            <option value="applied">Applied</option>
+            <option value="interview">Interview</option>
+            <option value="offer">Offer</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+      </div>
+      {filteredApplications.length === 0 ? (
+        <div className="applications-empty">
+          <p>
+            {getEmptyMessage()}
+          </p>
+        </div>
+      ) : (
+        <div className="applications-list">
+          {filteredApplications.map((app) => (
         <div key={app.id} className="application-card">
           <div className="application-header">
             <div className="application-title">
@@ -107,6 +171,8 @@ const ApplicationsList = ({ applications, onEdit, onDelete }: ApplicationsListPr
           </div>
         </div>
       ))}
+        </div>
+      )}
     </div>
   );
 };
