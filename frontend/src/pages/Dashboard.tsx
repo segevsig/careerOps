@@ -212,7 +212,7 @@ useEffect(() => {
       <main className="dashboard-main">
         <WelcomeSection user={dashboardData?.user || null} displayName={displayName} />
 
-        <StatsSection stats={dashboardData?.stats || null} />
+        <StatsSection stats={dashboardData?.stats || null} applications={applications} />
 
         <section className="applications-section">
           <div className="section-header">
