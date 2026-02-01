@@ -9,6 +9,7 @@ import WelcomeSection from '../components/WelcomeSection';
 import JobTipsSection from '../components/JobTipsSection';
 import StatsSection from '../components/StatsSection';
 import CoverLetterGenerator from '../components/CoverLetterGenerator';
+import ResumeScoring from '../components/ResumeScoring';
 import './Dashboard.css';
 
 interface DashboardData {
@@ -53,6 +54,7 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [showCoverLetter, setShowCoverLetter] = useState(false);
+  const [showResumeScoring, setShowResumeScoring] = useState(false);
   const [editingApplication, setEditingApplication] = useState<Application | null>(null);
   const [dailyData, setDailyData] = useState<DailyStats[]>([]);
 
@@ -228,27 +230,50 @@ useEffect(() => {
           />
         </section>
 
-        <section className="cover-letter-toggle-section">
-          <button 
-            onClick={() => setShowCoverLetter(!showCoverLetter)} 
-            className="cover-letter-toggle-button"
-          >
-            {showCoverLetter ? (
-              <>
-                <span>✕</span>
-                Hide Cover Letter Generator
-              </>
-            ) : (
-              <>
-                <span>✨</span>
-                Generate Cover Letter
-              </>
-            )}
-          </button>
+        <section className="ai-tools-section">
+          <h3 className="ai-tools-title">AI Tools</h3>
+          <div className="ai-tools-buttons">
+            <button 
+              onClick={() => setShowCoverLetter(!showCoverLetter)} 
+              className="cover-letter-toggle-button"
+            >
+              {showCoverLetter ? (
+                <>
+                  <span>✕</span>
+                  Hide Cover Letter Generator
+                </>
+              ) : (
+                <>
+                  <span>✨</span>
+                  Generate Cover Letter
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => setShowResumeScoring(!showResumeScoring)}
+              className="cover-letter-toggle-button"
+            >
+              {showResumeScoring ? (
+                <>
+                  <span>✕</span>
+                  Hide Resume Scoring
+                </>
+              ) : (
+                <>
+                  <span>📊</span>
+                  Resume Scoring
+                </>
+              )}
+            </button>
+          </div>
         </section>
 
         {showCoverLetter && (
           <CoverLetterGenerator onClose={() => setShowCoverLetter(false)} />
+        )}
+
+        {showResumeScoring && (
+          <ResumeScoring onClose={() => setShowResumeScoring(false)} />
         )}
       </main>
 

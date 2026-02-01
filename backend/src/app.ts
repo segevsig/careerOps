@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import dashboardRoutes from './routes/dashboard';
 import applicationsRoutes from './routes/applications';
 import generateCoverLetter from './routes/coverLetter';
+import resumeScoringRoutes from './routes/resumeScoring';
 
 
 const app: Application = express();
@@ -77,8 +78,7 @@ app.get('/health/rabbitmq', async (_req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/applications', applicationsRoutes);
-app.use('/api/cover-letter',generateCoverLetter);
-
-
+app.use('/api/cover-letter', generateCoverLetter);
+app.use('/api/resume-scoring', resumeScoringRoutes);
 
 export default app;

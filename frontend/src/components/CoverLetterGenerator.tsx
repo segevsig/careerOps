@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type { ChangeEvent } from 'react';
 import api from '../services/api';
 import './CoverLetterGenerator.css';
 
@@ -16,6 +17,27 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
   const [jobId, setJobId] = useState<string | null>(null);
   const [status, setStatus] = useState<'pending' | 'processing' | 'completed' | 'failed' | null>(null);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('text/')) {
+      setError('Please upload a plain text (.txt) resume for now.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = typeof reader.result === 'string' ? reader.result : '';
+      setCvText(text);
+      setError('');
+    };
+    reader.onerror = () => {
+      setError('Failed to read the resume file. Please try again.');
+    };
+    reader.readAsText(file);
+  };
 
   // Poll for job status
   useEffect(() => {
@@ -98,7 +120,7 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
           <div className="cover-letter-box">
             <div className="cover-letter-header">
               <div className="cover-letter-header-content">
-                <h3>Generate Cover Letter</h3>
+                <h3 className="ai-widget-title">AI · Generate Cover Letter</h3>
                 <button className="cover-letter-close-button" onClick={onClose} aria-label="Close">
                   ×
                 </button>
@@ -109,25 +131,35 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
         <div className="cover-letter-inputs">
           <div className="input-group">
             <label htmlFor="cvText">Your CV</label>
+            <div className="cv-upload-row">
+              <input
+                id="cvFile"
+                type="file"
+                accept=".txt"
+                onChange={handleFileChange}
+                className="cv-file-input"
+              />
+              <span className="cv-file-hint">Supported: plain text (.txt)</span>
+            </div>
             <textarea
               id="cvText"
               placeholder="Paste your CV here... (resume, work experience, skills, education)"
               value={cvText}
               onChange={(e) => setCvText(e.target.value)}
-              rows={8}
-              className="cover-letter-textarea"
+              rows={12}
+              className="cover-letter-textarea cover-letter-textarea--cv"
             />
           </div>
 
-          <div className="input-group">
+          <div className="input-group input-group--job-desc">
             <label htmlFor="jobDescription">Job Description</label>
             <textarea
               id="jobDescription"
               placeholder="Paste the job description here... (requirements, responsibilities, company info)"
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              rows={8}
-              className="cover-letter-textarea"
+              rows={6}
+              className="cover-letter-textarea cover-letter-textarea--job-desc"
             />
           </div>
         </div>

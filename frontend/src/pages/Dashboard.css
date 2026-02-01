@@ -62,9 +62,21 @@
   box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
 
-.cover-letter-toggle-section {
+.ai-tools-section {
   margin-bottom: 30px;
+}
+
+.ai-tools-title {
+  margin: 0 0 16px 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.ai-tools-buttons {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: center;
 }
 
