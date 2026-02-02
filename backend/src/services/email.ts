@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { logger } from '../utils/logger';
 
 /**
  * Email configuration via environment variables:
@@ -56,6 +57,6 @@ export async function sendPasswordResetEmail(
       html,
     });
   } else {
-    console.log('[Email] SMTP not configured. Password reset link (dev):', resetLink);
+    logger.info('SMTP not configured; password reset link (dev)', { resetLink });
   }
 }

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import pool from '../config/database';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -105,7 +106,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       stats,
     });
   } catch (error) {
-    console.error('Dashboard error:', error);
+    logger.error('Dashboard failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

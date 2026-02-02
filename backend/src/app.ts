@@ -1,4 +1,4 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
@@ -7,12 +7,27 @@ import dashboardRoutes from './routes/dashboard';
 import applicationsRoutes from './routes/applications';
 import generateCoverLetter from './routes/coverLetter';
 import resumeScoringRoutes from './routes/resumeScoring';
-
+import { logger } from './utils/logger';
 
 const app: Application = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Request logging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    logger.info('HTTP request', {
+      method: req.method,
+      path: req.path,
+      statusCode: res.statusCode,
+      durationMs: duration,
+    });
+  });
+  next();
+});
 
 // Swagger setup
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
@@ -67,10 +82,13 @@ app.get('/health/rabbitmq', async (_req, res) => {
     await getConnection();
     res.json({ status: 'ok', rabbitmq: 'connected' });
   } catch (error) {
-    res.status(503).json({ 
-      status: 'error', 
+    logger.warn('RabbitMQ health check failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    res.status(503).json({
+      status: 'error',
       rabbitmq: 'not available',
-      message: error instanceof Error ? error.message : 'Unknown error'
+      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });

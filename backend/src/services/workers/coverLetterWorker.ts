@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import pool from '../../config/database';
 import { CoverLetterJobMessage } from '../../types/queue.types';
 import { ConsumeMessage } from 'amqplib';
+import { logger } from '../../utils/logger';
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -84,7 +85,7 @@ export const processCoverLetterJob = async (
 ): Promise<void> => {
   const { jobId, userId, jobDescription, cvText, tone } = message;
 
-  console.log(`Processing cover letter job: ${jobId} for user: ${userId}`);
+  logger.info('Processing cover letter job', { jobId, userId });
 
   try {
     // Update status to processing
@@ -100,9 +101,9 @@ export const processCoverLetterJob = async (
     // Update status to completed
     await updateJobStatus(jobId, 'completed', coverLetter);
 
-    console.log(`Cover letter job completed: ${jobId}`);
+    logger.info('Cover letter job completed', { jobId });
   } catch (error) {
-    console.error(`Error processing cover letter job ${jobId}:`, error);
+    logger.error('Cover letter job failed', error instanceof Error ? error : undefined);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await updateJobStatus(jobId, 'failed', undefined, errorMessage);

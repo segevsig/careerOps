@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import pool from '../config/database';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -69,7 +70,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res: Response) => {
 
     res.json({ applications: result.rows });
   } catch (error) {
-    console.error('Get applications error:', error);
+    logger.error('Get applications failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -143,7 +144,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 
     res.json({ application: result.rows[0] });
   } catch (error) {
-    console.error('Get application error:', error);
+    logger.error('Get application failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -207,9 +208,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.userId;
-    const { companyName, positionTitle, status, appliedDate, notes ,appliedfrom } = req.body;
-
-    console.log('appliedfrom',appliedfrom);
+    const { companyName, positionTitle, status, appliedDate, notes, appliedfrom } = req.body;
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -233,9 +232,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       [userId, companyName, positionTitle, applicationStatus, appliedDate, notes || null , appliedfrom || 'unknown' ]
     );
 
+    logger.info('Application created', { userId, applicationId: result.rows[0].id });
     res.status(201).json({ application: result.rows[0] });
   } catch (error) {
-    console.error('Create application error:', error);
+    logger.error('Create application failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -372,7 +372,7 @@ router.put('/:id', authenticateToken, async (req: AuthRequest, res: Response) =>
 
     res.json({ application: result.rows[0] });
   } catch (error) {
-    console.error('Update application error:', error);
+    logger.error('Update application failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -429,7 +429,7 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res: Response)
 
     res.json({ message: 'Application deleted successfully' });
   } catch (error) {
-    console.error('Delete application error:', error);
+    logger.error('Delete application failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

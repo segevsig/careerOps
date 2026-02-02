@@ -1,5 +1,6 @@
 import { getChannel, assertQueue } from '../../config/rabbitmq';
 import { ConsumeMessage } from 'amqplib';
+import { logger } from '../../utils/logger';
 
 export interface MessageHandler<T = any> {
   (message: T, rawMessage: ConsumeMessage): Promise<void>;
@@ -47,11 +48,13 @@ export const consumeMessages = async <T>(
             channel.ack(msg);
           }
         } catch (error) {
-          console.error(`Error processing message from queue ${queueName}:`, error);
+          logger.error('Queue message processing failed', {
+            queueName,
+            error: error instanceof Error ? error.message : String(error),
+          });
 
-          // Reject message and requeue (or send to dead letter queue)
           if (!options?.noAck) {
-            channel.nack(msg, false, true); // requeue = true
+            channel.nack(msg, false, true);
           }
         }
       },
@@ -60,9 +63,9 @@ export const consumeMessages = async <T>(
       }
     );
 
-    console.log(`Started consuming messages from queue: ${queueName}`);
+    logger.info('Started consuming messages', { queueName });
   } catch (error) {
-    console.error(`Error setting up consumer for queue ${queueName}:`, error);
+    logger.error('Consumer setup failed', error instanceof Error ? error : undefined);
     throw error;
   }
 };

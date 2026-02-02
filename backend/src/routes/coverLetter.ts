@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import pool from '../config/database';
 import { publishCoverLetterJob } from '../services/queue/publisher';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -97,18 +98,17 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
       tone: tone || 'professional',
       createdAt,
     }).catch((error) => {
-      console.error('Failed to publish job to queue (job saved in DB):', error);
-      // Job is already in DB, worker can pick it up later or we can retry
+      logger.error('Failed to publish cover letter job to queue (job saved in DB)', error instanceof Error ? error : undefined);
     });
 
-    // Return immediately with job ID
+    logger.info('Cover letter job created', { jobId, userId });
     res.status(202).json({
       jobId,
       status: 'pending',
       message: 'Cover letter generation started',
     });
   } catch (error) {
-    console.error('Create cover letter job error:', error);
+    logger.error('Create cover letter job failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Failed to create cover letter job' });
   }
 });
@@ -190,7 +190,7 @@ router.get('/status/:jobId', authenticateToken, async (req: AuthRequest, res: Re
       completedAt: job.completed_at || undefined,
     });
   } catch (error) {
-    console.error('Get cover letter status error:', error);
+    logger.error('Get cover letter status failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -257,7 +257,7 @@ router.get('/jobs', authenticateToken, async (req: AuthRequest, res: Response) =
       })),
     });
   } catch (error) {
-    console.error('Get cover letter jobs error:', error);
+    logger.error('Get cover letter jobs failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

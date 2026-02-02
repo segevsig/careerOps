@@ -1,13 +1,11 @@
 import amqp, { Connection, Channel } from 'amqplib';
+import { logger } from '../utils/logger';
 
 let connection: Connection | null = null;
 let channel: Channel | null = null;
 
 const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
 
-/**
- * Get or create RabbitMQ connection
- */
 export const getConnection = async (): Promise<Connection> => {
   if (connection) {
     return connection;
@@ -15,24 +13,23 @@ export const getConnection = async (): Promise<Connection> => {
 
   try {
     connection = await amqp.connect(RABBITMQ_URL);
-    console.log('Connected to RabbitMQ');
+    logger.info('Connected to RabbitMQ');
 
-    // Handle connection errors
     connection.on('error', (err) => {
-      console.error('RabbitMQ connection error:', err);
+      logger.error('RabbitMQ connection error', err);
       connection = null;
       channel = null;
     });
 
     connection.on('close', () => {
-      console.log('RabbitMQ connection closed');
+      logger.info('RabbitMQ connection closed');
       connection = null;
       channel = null;
     });
 
     return connection;
   } catch (error) {
-    console.error('Failed to connect to RabbitMQ:', error);
+    logger.error('Failed to connect to RabbitMQ', error instanceof Error ? error : undefined);
     connection = null;
     channel = null;
     throw error;
@@ -49,16 +46,15 @@ export const getChannel = async (): Promise<Channel> => {
 
   const conn = await getConnection();
   channel = await conn.createChannel();
-  console.log('RabbitMQ channel created');
+  logger.info('RabbitMQ channel created');
 
-  // Handle channel errors
   channel.on('error', (err) => {
-    console.error('RabbitMQ channel error:', err);
+    logger.error('RabbitMQ channel error', err);
     channel = null;
   });
 
   channel.on('close', () => {
-    console.log('RabbitMQ channel closed');
+    logger.info('RabbitMQ channel closed');
     channel = null;
   });
 
@@ -77,7 +73,7 @@ export const closeConnection = async (): Promise<void> => {
     await connection.close();
     connection = null;
   }
-  console.log('RabbitMQ connection closed');
+  logger.info('RabbitMQ connection closed');
 };
 
 /**

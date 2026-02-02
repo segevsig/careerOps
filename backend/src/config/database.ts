@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { logger } from '../utils/logger';
 
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
@@ -8,15 +9,12 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'careerops',
 });
 
-// Test connection
 pool.on('connect', () => {
-  console.log('Connected to PostgreSQL database');
+  logger.info('Connected to PostgreSQL database');
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected error on idle database client:', err);
-  // Do not exit: process.exit() kills the server and causes ERR_CONNECTION_RESET.
-  // The pool may recover; let the app keep running.
+  logger.error('Unexpected error on idle database client', err);
 });
 
 // Initialize database tables
@@ -105,9 +103,9 @@ export const initDatabase = async () => {
       )
     `);
 
-    console.log('Database tables initialized successfully');
+    logger.info('Database tables initialized successfully');
   } catch (error) {
-    console.error('Error initializing database:', error);
+    logger.error('Error initializing database', error instanceof Error ? error : undefined);
     throw error;
   }
 };

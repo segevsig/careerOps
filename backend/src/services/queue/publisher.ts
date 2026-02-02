@@ -1,5 +1,6 @@
 import { getChannel, assertQueue } from '../../config/rabbitmq';
 import { QueueNames } from '../../types/queue.types';
+import { logger } from '../../utils/logger';
 
 /**
  * Publish a message to a queue
@@ -25,14 +26,14 @@ export const publishMessage = async <T>(
     );
 
     if (sent) {
-      console.log(`Message published to queue: ${queueName}`);
+      logger.info('Message published to queue', { queueName });
       return true;
     } else {
-      console.warn(`Failed to publish message to queue: ${queueName}`);
+      logger.warn('Failed to publish message to queue', { queueName });
       return false;
     }
   } catch (error) {
-    console.error(`Error publishing message to queue ${queueName}:`, error);
+    logger.error('Publish message failed', error instanceof Error ? error : undefined);
     // Don't throw - return false so the API can still respond
     // The job is already saved in DB, it can be retried later
     return false;

@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import pool from '../config/database';
 import { generateToken } from '../middleware/auth';
 import { sendPasswordResetEmail, isSmtpConfigured, getResetLink } from '../services/email';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -98,6 +99,7 @@ router.post('/register', async (req: Request, res: Response) => {
     const user = result.rows[0];
     const token = generateToken(user.id);
 
+    logger.info('User registered', { userId: user.id, email: user.email });
     res.status(201).json({
       message: 'User registered successfully',
       user: {
@@ -109,7 +111,7 @@ router.post('/register', async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -197,6 +199,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const token = generateToken(user.id);
 
+    logger.info('User logged in', { userId: user.id, email: user.email });
     res.json({
       message: 'Login successful',
       user: {
@@ -208,7 +211,7 @@ router.post('/login', async (req: Request, res: Response) => {
       token,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -262,8 +265,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     try {
       await sendPasswordResetEmail(user.email, rawToken);
     } catch (emailErr) {
-      console.error('[Forgot password] Email send failed:', emailErr);
-      // Still return 200; token is saved, link can be retried or checked in logs
+      logger.error('Forgot password: email send failed', emailErr instanceof Error ? emailErr : undefined);
     }
 
     const payload: { message: string; resetLink?: string } = {
@@ -274,7 +276,7 @@ router.post('/forgot-password', async (req: Request, res: Response) => {
     }
     res.json(payload);
   } catch (error) {
-    console.error('Forgot password error:', error);
+    logger.error('Forgot password failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -330,9 +332,10 @@ router.post('/reset-password', async (req: Request, res: Response) => {
     ]);
     await pool.query('DELETE FROM password_reset_tokens WHERE user_id = $1', [userId]);
 
+    logger.info('Password reset successful', { userId });
     res.json({ message: 'Password reset successfully. You can log in with your new password.' });
   } catch (error) {
-    console.error('Reset password error:', error);
+    logger.error('Reset password failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import { authenticateToken, AuthRequest } from '../middleware/auth';
 import { generateResumeScoring } from '../services/ai/resumeScoring';
+import { logger } from '../utils/logger';
 
 const router = Router();
 
@@ -85,12 +86,12 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     }
 
     const result = await generateResumeScoring(cvText, jobDescription);
-
+    logger.info('Resume scoring completed', { userId, score: result.score });
     res.json(result);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Unknown error during resume scoring';
-    console.error('Resume scoring error:', error);
+    logger.error('Resume scoring failed', error instanceof Error ? error : undefined);
     res.status(500).json({ error: 'Failed to score resume', details: message });
   }
 });
