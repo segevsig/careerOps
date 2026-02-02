@@ -1,5 +1,94 @@
 # Troubleshooting Guide
 
+## RabbitMQ and AI pipeline errors
+
+**Important:** RabbitMQ is used only by the **Node.js backend and worker**. The **Python ai-service does not use RabbitMQ** – it is called by the worker over HTTP (`AI_SERVICE_URL`, e.g. http://localhost:8000/ask). If you see a RabbitMQ-related error, it usually comes from the backend or worker; if the worker fails when calling the ai-service, the error may still show up in worker logs.
+
+### 1. Check which service is failing
+
+Run these and look for errors:
+
+```bash
+# RabbitMQ itself (broker)
+docker compose logs rabbitmq
+
+# Node worker (consumes from RabbitMQ, then calls ai-service)
+docker compose logs worker
+
+# Python ai-service (called by worker via HTTP; no RabbitMQ)
+docker compose logs ai-service
+
+# Backend (publishes jobs to RabbitMQ)
+docker compose logs backend
+```
+
+### 2. Check RabbitMQ is up and reachable
+
+```bash
+# Container status
+docker compose ps rabbitmq
+
+# Management UI (login: careerops / careerops)
+open http://localhost:15672
+
+# From backend/worker (health endpoint)
+curl http://localhost:3000/health/rabbitmq
+```
+
+If RabbitMQ is down: `docker compose up -d rabbitmq`.
+
+### 3. Check the worker (Node – RabbitMQ consumer)
+
+The worker connects to RabbitMQ and processes cover letter jobs. When it runs a job, it calls the **ai-service** over HTTP. Errors here can look like “RabbitMQ” or “queue” but the root cause might be the ai-service:
+
+```bash
+# Follow worker logs
+docker compose logs -f worker
+
+# Look for:
+# - "Failed to connect to RabbitMQ" / "Consumer setup failed" → RabbitMQ or URL
+# - "AI service error" / "Cover letter job failed" → often ai-service or network
+```
+
+Fix RabbitMQ/URL: ensure `RABBITMQ_URL` is correct (e.g. `amqp://careerops:careerops@rabbitmq:5672` in Docker). Fix ai-service errors: see step 4.
+
+### 4. Check the ai-service (Python – no RabbitMQ)
+
+The ai-service is **only** called by the worker via HTTP. It does not connect to RabbitMQ. If the worker fails when calling it, check:
+
+```bash
+# Is the ai-service running?
+docker compose ps ai-service
+
+# Recent logs (Ollama, timeouts, 500s)
+docker compose logs ai-service
+
+# Can the worker reach it? (from host; in Docker, worker uses http://ai-service:8000)
+curl -X POST http://localhost:8000/ask -H "Content-Type: application/json" -d '{"prompt":"Hi"}'
+```
+
+Ensure `AI_SERVICE_URL` for the worker points to the ai-service (e.g. `http://ai-service:8000` in Docker, `http://localhost:8000` locally). If ai-service fails, fix Ollama/model or Python errors shown in `docker compose logs ai-service`.
+
+### 5. Quick checklist
+
+| Step | Command | What to check |
+|------|---------|----------------|
+| RabbitMQ up | `docker compose ps rabbitmq` | State: Up (healthy) |
+| Worker logs | `docker compose logs worker` | Connection errors vs "Cover letter job failed" / "AI service error" |
+| ai-service logs | `docker compose logs ai-service` | Python/Ollama errors, timeouts |
+| Backend logs | `docker compose logs backend` | "Failed to publish job to queue" |
+| Health | `curl http://localhost:3000/health/rabbitmq` | `{"status":"ok","rabbitmq":"connected"}` |
+
+### 6. Restart the pipeline
+
+```bash
+docker compose restart rabbitmq worker backend
+# If you use ai-service for cover letter / resume scoring:
+docker compose restart ai-service worker
+```
+
+---
+
 ## Connection Reset Error (ERR_CONNECTION_RESET)
 
 If you're getting `net::ERR_CONNECTION_RESET` when accessing `/api/cover-letter`, check the following:

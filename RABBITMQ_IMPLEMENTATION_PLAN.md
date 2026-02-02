@@ -52,7 +52,7 @@ RabbitMQ is a message broker that enables **asynchronous processing** and **deco
 ### Current Problems It Solves:
 
 1. **Synchronous Cover Letter Generation** (Current Issue)
-   - Currently: User waits for OpenAI API call to complete (can take 5-30 seconds)
+   - Currently: User waits for AI service call to complete (can take 5-30 seconds)
    - With RabbitMQ: Request is queued, user gets immediate response, processing happens in background
    - **Benefit**: Better UX, no timeouts, can handle more concurrent requests
 
@@ -140,7 +140,7 @@ services:
       DB_USER: careerops
       DB_PASSWORD: careerops
       RABBITMQ_URL: amqp://careerops:careerops@rabbitmq:5672
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      AI_SERVICE_URL: http://ai-service:8000
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -181,13 +181,13 @@ volumes:
 
 **Before (Current - Synchronous):**
 ```
-User Request → Express Route → OpenAI API (wait 10s) → Response
+User Request → Express Route → Local AI service (wait 10s) → Response
 ```
 
 **After (With RabbitMQ - Asynchronous):**
 ```
 1. User Request → Express Route → Publish to Queue → Immediate Response (jobId)
-2. Worker consumes message → Calls OpenAI API → Stores result in DB
+2. Worker consumes message → Calls local AI service → Stores result in DB
 3. Frontend polls or uses WebSocket to get result
 ```
 
@@ -202,7 +202,7 @@ User Request → Express Route → OpenAI API (wait 10s) → Response
 2. **Worker process** (separate Node.js process)
    - Connects to RabbitMQ
    - Consumes messages from `cover-letter.generate`
-   - Calls OpenAI API
+   - Calls local AI service (http://localhost:8000/ask)
    - Stores result in database (new table: `cover_letter_jobs`)
    - Optionally publishes completion message
 
@@ -229,7 +229,7 @@ User Request → Express Route → OpenAI API (wait 10s) → Response
 
 ### 4. **Cover Letter Worker** (`src/services/workers/coverLetterWorker.ts`)
 - Specific logic for cover letter generation
-- OpenAI integration
+- Local AI service integration
 - Database updates
 
 ### 5. **Database Table** (for job tracking)

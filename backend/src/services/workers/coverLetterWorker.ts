@@ -1,16 +1,9 @@
-import OpenAI from 'openai';
 import pool from '../../config/database';
 import { CoverLetterJobMessage } from '../../types/queue.types';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '../../utils/logger';
+import { askAi } from '../ai/client';
 
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-/**
- * Generate cover letter using OpenAI
- */
 async function generateCoverLetter(
   jobDescription: string,
   cvText: string,
@@ -32,18 +25,10 @@ async function generateCoverLetter(
     Cover Letter:
   `;
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.7,
-  });
-
-  return response.choices[0].message?.content ?? '';
+  const answer = await askAi(prompt);
+  return answer ?? '';
 }
 
-/**
- * Update job status in database
- */
 async function updateJobStatus(
   jobId: string,
   status: 'pending' | 'processing' | 'completed' | 'failed',
@@ -76,39 +61,32 @@ async function updateJobStatus(
   }
 }
 
-/**
- * Process cover letter generation job
- */
 export const processCoverLetterJob = async (
   message: CoverLetterJobMessage,
-  rawMessage?: ConsumeMessage
+  _rawMessage?: ConsumeMessage
 ): Promise<void> => {
   const { jobId, userId, jobDescription, cvText, tone } = message;
 
   logger.info('Processing cover letter job', { jobId, userId });
 
   try {
-    // Update status to processing
     await updateJobStatus(jobId, 'processing');
 
-    // Generate cover letter
     const coverLetter = await generateCoverLetter(
       jobDescription,
       cvText,
       tone || 'professional'
     );
 
-    // Update status to completed
     await updateJobStatus(jobId, 'completed', coverLetter);
 
     logger.info('Cover letter job completed', { jobId });
   } catch (error) {
     logger.error('Cover letter job failed', error instanceof Error ? error : undefined);
-    
+
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     await updateJobStatus(jobId, 'failed', undefined, errorMessage);
 
-    // Re-throw to trigger nack/requeue if needed
     throw error;
   }
 };

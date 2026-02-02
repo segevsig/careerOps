@@ -150,7 +150,7 @@ curl http://localhost:3000/api/cover-letter/status/JOB_ID \
          ▼
 ┌─────────────────┐
 │  Worker Process │
-│  - OpenAI API   │
+│  - Local AI     │
 │  - Update DB    │
 └─────────────────┘
 ```
@@ -170,7 +170,7 @@ curl http://localhost:3000/api/cover-letter/status/JOB_ID \
      - Display status updates to user
 
 3. **Environment Variables**
-   - Ensure `OPENAI_API_KEY` is set in `.env` or docker-compose
+   - Ensure `AI_SERVICE_URL` is set (default http://localhost:8000; use http://ai-service:8000 in Docker)
    - Change RabbitMQ credentials for production
 
 4. **Testing**

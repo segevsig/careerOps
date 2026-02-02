@@ -1,8 +1,4 @@
-import OpenAI from 'openai';
-
-const client = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { askAi } from './client';
 
 export interface ResumeScoringResultItem {
   title: string;
@@ -78,22 +74,18 @@ ${jobDescription}
 Return only the JSON object, with no extra text or explanation.
 `;
 
-  const response = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.4,
-    response_format: { type: 'json_object' },
-  });
+  const content = await askAi(prompt);
 
-  const content = response.choices[0].message?.content;
-
-  if (!content) {
+  if (!content || typeof content !== 'string') {
     throw new Error('Empty response from AI service');
   }
 
+  // Strip possible markdown code fence
+  const raw = content.replace(/^```(?:json)?\s*|\s*```$/g, '').trim();
+
   let parsed: unknown;
   try {
-    parsed = JSON.parse(content);
+    parsed = JSON.parse(raw);
   } catch (error) {
     throw new Error('Failed to parse AI response as JSON');
   }
@@ -116,7 +108,6 @@ Return only the JSON object, with no extra text or explanation.
     throw new Error('AI response is missing suggestions array');
   }
 
-  // Clamp and normalize score
   const normalizedScore = Math.min(100, Math.max(0, Math.round(result.score)));
 
   const strengths = result.strengths.slice(0, 3).map((item) => ({
@@ -140,4 +131,3 @@ Return only the JSON object, with no extra text or explanation.
     suggestions,
   };
 }
-

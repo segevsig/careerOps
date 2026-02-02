@@ -102,7 +102,7 @@ Worker Process (separate container)
     ↓
 Consume from Queue
     ↓
-Call OpenAI API
+Call local AI service (http://localhost:8000/ask)
     ↓
 Update DB (status: completed, coverLetter: "...")
 ```
@@ -167,7 +167,7 @@ const coverLetter = await pollStatus();
 
 1. Check if worker is running: `docker-compose ps`
 2. Check worker logs for errors
-3. Verify OPENAI_API_KEY is set in worker environment
+3. Verify AI_SERVICE_URL is set (default http://localhost:8000) so worker can reach the ai-service
 
 ### Database connection issues
 
@@ -188,7 +188,7 @@ npm run worker
 Make sure to set environment variables:
 - `RABBITMQ_URL=amqp://careerops:careerops@localhost:5672`
 - `DB_HOST=localhost`
-- `OPENAI_API_KEY=your-key`
+- `AI_SERVICE_URL=http://localhost:8000` (or http://ai-service:8000 in Docker)
 
 ### Add New Queue/Worker
 

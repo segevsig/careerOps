@@ -5,7 +5,7 @@ beforeAll(() => {
   // Set test environment variables
   process.env.NODE_ENV = 'test';
   process.env.JWT_SECRET = 'test-secret-key';
-  process.env.OPENAI_API_KEY = 'test-openai-key';
+  process.env.AI_SERVICE_URL = 'http://localhost:8000';
 });
 
 afterAll(() => {
