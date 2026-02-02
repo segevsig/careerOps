@@ -104,18 +104,19 @@
   background: #f3f4f6;
   border: none;
   color: #6b7280;
-  width: 36px;
+  width: auto;
   height: 36px;
   border-radius: 999px;
-  font-size: 1.5rem;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.15s ease, color 0.15s ease;
-  line-height: 1;
+  line-height: 1.2;
   padding: 0.25rem 0.5rem;
   flex-shrink: 0;
+  margin-top: 1rem;
 }
 
 .cover-letter-close-button:hover {
@@ -529,4 +530,20 @@
   .copy-button {
     width: 100%;
   }
+}
+
+/* Page variant – full page, no overlay */
+.cover-letter-page {
+  padding: 2rem 1.5rem 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.cover-letter-page-content {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  border: 1px solid #e5e7eb;
 }

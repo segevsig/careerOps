@@ -5,6 +5,7 @@ import './ResumeScoring.css';
 
 interface ResumeScoringProps {
   onClose: () => void;
+  variant?: 'modal' | 'page';
 }
 
 interface ScoringItem {
@@ -19,7 +20,7 @@ interface ResumeScoringResult {
   suggestions: string[];
 }
 
-const ResumeScoring = ({ onClose }: ResumeScoringProps) => {
+const ResumeScoring = ({ onClose, variant = 'modal' }: ResumeScoringProps) => {
   const [cvText, setCvText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [result, setResult] = useState<ResumeScoringResult | null>(null);
@@ -73,9 +74,14 @@ const ResumeScoring = ({ onClose }: ResumeScoringProps) => {
     return '#ef4444'; // red
   };
 
+  const isPage = variant === 'page';
+  const wrapperClass = isPage ? 'resume-scoring-page' : 'resume-scoring-modal-overlay';
+  const contentClass = isPage ? 'resume-scoring-page-content' : 'resume-scoring-modal-content';
+  const contentProps = isPage ? {} : { onClick: (e: React.MouseEvent) => e.stopPropagation() };
+
   return (
-    <div className="resume-scoring-modal-overlay" onClick={onClose}>
-      <div className="resume-scoring-modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className={wrapperClass} onClick={isPage ? undefined : onClose}>
+      <div className={contentClass} {...contentProps}>
         <section className="resume-scoring-section">
           <div className="resume-scoring-box">
             <div className="resume-scoring-header">
@@ -84,9 +90,9 @@ const ResumeScoring = ({ onClose }: ResumeScoringProps) => {
                 <button
                   className="resume-scoring-close-button"
                   onClick={onClose}
-                  aria-label="Close"
+                  aria-label={isPage ? 'Back' : 'Close'}
                 >
-                  ×
+                  {isPage ? '← Back' : '×'}
                 </button>
               </div>
               <p className="resume-scoring-subtitle">

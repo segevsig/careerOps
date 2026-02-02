@@ -6,6 +6,8 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
+import CoverLetterPage from './pages/CoverLetterPage';
+import ResumeScoringPage from './pages/ResumeScoringPage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, isLoading } = useAuth();
@@ -32,6 +34,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Dashboard />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/cover-letter"
+            element={
+              <PrivateRoute>
+                <CoverLetterPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/resume-scoring"
+            element={
+              <PrivateRoute>
+                <ResumeScoringPage />
               </PrivateRoute>
             }
           />

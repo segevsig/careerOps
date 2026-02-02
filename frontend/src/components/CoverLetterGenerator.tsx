@@ -5,9 +5,10 @@ import './CoverLetterGenerator.css';
 
 interface CoverLetterGeneratorProps {
   onClose: () => void;
+  variant?: 'modal' | 'page';
 }
 
-const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
+const CoverLetterGenerator = ({ onClose, variant = 'modal' }: CoverLetterGeneratorProps) => {
   const [cvText, setCvText] = useState("");
   const [jobDescription, setJobDescription] = useState("");
   const [coverLetter, setCoverLetter] = useState("");
@@ -113,16 +114,21 @@ const CoverLetterGenerator = ({ onClose }: CoverLetterGeneratorProps) => {
     }
   };
 
+  const isPage = variant === 'page';
+  const wrapperClass = isPage ? 'cover-letter-page' : 'cover-letter-modal-overlay';
+  const contentClass = isPage ? 'cover-letter-page-content' : 'cover-letter-modal-content';
+  const contentProps = isPage ? {} : { onClick: (e: React.MouseEvent) => e.stopPropagation() };
+
   return (
-    <div className="cover-letter-modal-overlay" onClick={onClose}>
-      <div className="cover-letter-modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className={wrapperClass} onClick={isPage ? undefined : onClose}>
+      <div className={contentClass} {...contentProps}>
         <section className="cover-letter-section">
           <div className="cover-letter-box">
             <div className="cover-letter-header">
               <div className="cover-letter-header-content">
                 <h3 className="ai-widget-title">AI · Generate Cover Letter</h3>
-                <button className="cover-letter-close-button" onClick={onClose} aria-label="Close">
-                  ×
+                <button className="cover-letter-close-button" onClick={onClose} aria-label={isPage ? 'Back' : 'Close'}>
+                  {isPage ? '← Back' : '×'}
                 </button>
               </div>
               <p className="cover-letter-subtitle">AI-powered cover letter generator tailored to your CV and job description</p>

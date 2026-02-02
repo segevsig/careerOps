@@ -318,3 +318,19 @@
     align-items: flex-start;
   }
 }
+
+/* Page variant – full page, no overlay */
+.resume-scoring-page {
+  padding: 2rem 1.5rem 3rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.resume-scoring-page-content {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  border: 1px solid #e5e7eb;
+}
