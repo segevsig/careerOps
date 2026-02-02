@@ -62,7 +62,11 @@ const ResumeScoring = ({ onClose, variant = 'modal' }: ResumeScoringProps) => {
       });
       setResult(response.data);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Something went wrong while scoring your resume.');
+      const details = err.response?.data?.details;
+      const msg = err.response?.data?.error;
+      setError(
+        typeof details === 'string' ? details : msg || 'Something went wrong while scoring your resume.'
+      );
     } finally {
       setLoading(false);
     }

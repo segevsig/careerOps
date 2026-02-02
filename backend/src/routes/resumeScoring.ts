@@ -92,7 +92,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res: Response) => {
     const message =
       error instanceof Error ? error.message : 'Unknown error during resume scoring';
     logger.error('Resume scoring failed', error instanceof Error ? error : undefined);
-    res.status(500).json({ error: 'Failed to score resume', details: message });
+    res.status(500).json({
+      error: 'Failed to score resume',
+      details: message,
+    });
   }
 });
 

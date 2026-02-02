@@ -76,6 +76,8 @@ services:
         condition: service_healthy
       db:
         condition: service_healthy
+      ai-service:
+        condition: service_healthy
 
   frontend:
     build: ./frontend

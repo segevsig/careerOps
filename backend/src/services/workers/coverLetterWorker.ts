@@ -2,31 +2,23 @@ import pool from '../../config/database';
 import { CoverLetterJobMessage } from '../../types/queue.types';
 import { ConsumeMessage } from 'amqplib';
 import { logger } from '../../utils/logger';
-import { askAi } from '../ai/client';
+import { runTask } from '../ai/client';
+
+interface CoverLetterTaskResult {
+  result: string;
+}
 
 async function generateCoverLetter(
   jobDescription: string,
   cvText: string,
   tone: 'professional' | 'friendly' | 'concise' = 'professional'
 ): Promise<string> {
-  const prompt = `
-    You are a professional career coach.
-    Generate a cover letter in a ${tone} tone.
-    the cover letter need to be Short and precise for the job 
-    4-5 lines
-    A little information about the submitter 
-
-    CV:
-    ${cvText}
-
-    Job Description:
-    ${jobDescription}
-
-    Cover Letter:
-  `;
-
-  const answer = await askAi(prompt);
-  return answer ?? '';
+  const data = await runTask<CoverLetterTaskResult>('cover_letter', {
+    cvText,
+    jobDescription,
+    tone,
+  });
+  return data?.result ?? '';
 }
 
 async function updateJobStatus(
